@@ -1,0 +1,6 @@
+@PF_VNR_HostAddress = http://localhost:5228
+
+GET {{PF_VNR_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

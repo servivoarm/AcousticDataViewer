@@ -1,0 +1,18 @@
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Configuración local
+appsettings.Development.json
+
+# Archivos temporales
+*.tmp
+*.log
+*.ide
