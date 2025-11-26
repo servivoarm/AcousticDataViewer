@@ -9,6 +9,11 @@ obj/
 *.user
 *.suo
 
+# Backup and cache
+*.cache
+*.pidb
+*.svclog
+
 # Configuración local
 appsettings.Development.json
 
