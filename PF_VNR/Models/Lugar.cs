@@ -1,4 +1,5 @@
-﻿namespace PF_VNR.Models
+﻿using System.Text.Json.Serialization;
+namespace PF_VNR.Models
 {
     public class Lugar
     {
@@ -8,6 +9,7 @@
         public double Latitud { get; set; }
         public double Longitud { get; set; }
 
-        public ICollection<MedicionRuido> Mediciones { get; set; } = new List<MedicionRuido>();
+        [JsonIgnore] 
+        public ICollection<MedicionRuido> Mediciones { get; set; }
     }
 }
