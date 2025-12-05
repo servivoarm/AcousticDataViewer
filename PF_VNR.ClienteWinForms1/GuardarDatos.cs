@@ -1,7 +1,11 @@
-﻿using System;
-using System.Windows.Forms;
-using GMap.NET;
+﻿using GMap.NET;
 using GMap.NET.WindowsForms;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Windows.Forms;
+using static PF_VNR.ClienteWinForms1.GuardarBaseDatos;
 
 namespace PF_VNR.ClienteWinForms1
 {
@@ -76,6 +80,98 @@ namespace PF_VNR.ClienteWinForms1
             form.Show();
             this.Hide();
 
+        }
+
+        private void btnIngresarDatos_Click(object sender, EventArgs e)
+        {
+            // --- VALIDACIONES DE INTERFAZ ---
+            if (latSeleccionada == 0 || lngSeleccionada == 0)
+            {
+                MessageBox.Show("Por favor, seleccione un punto en el mapa.");
+                return;
+            }
+
+            // Asumiendo que tus controles se llaman txtNombre y cmbTipoZona
+            if (string.IsNullOrWhiteSpace(tbxNombreZona.Text) || cmbTipoZona.SelectedIndex == -1)
+            {
+                MessageBox.Show("Complete el nombre y el tipo de zona.");
+                return;
+            }
+
+            // --- LECTURA DEL ARCHIVO ---
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Archivos de texto (*.txt)|*.txt";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    // Lógica de lectura (Parseo)
+                    string filePath = openFileDialog.FileName;
+
+                    // La variable 'listaMediciones' (antes 'datosArchivo') ahora contiene la LISTA.
+                    var listaMediciones = LeerDatosDelArchivo(filePath);
+
+                    // Le pasamos los datos
+                    GestorDeDatos db = new GestorDeDatos();
+
+                    // 🚨 CORRECCIÓN CLAVE: La función GuardarLevantamientoMultiple 
+                    // ahora solo requiere la lista de mediciones, ya no necesita la fecha/dB por separado.
+                    db.GuardarLevantamientoMultiple(
+                        tbxNombreZona.Text,
+                        cmbTipoZona.SelectedItem.ToString(),
+                        latSeleccionada,
+                        lngSeleccionada,
+                        listaMediciones 
+                    );
+
+                    MessageBox.Show("¡Datos importados y guardados correctamente!");
+
+                    // Opcional: Limpiar controles
+                    tbxNombreZona.Clear();
+                    cmbTipoZona.SelectedIndex = -1;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error al guardar datos");
+                }
+            }
+        }
+
+        private List<MedicionData> LeerDatosDelArchivo(string path)
+        {
+            var mediciones = new List<MedicionData>();
+            string[] lineas = File.ReadAllLines(path);
+
+            var cultureDecimal = new CultureInfo("es-ES");
+
+            foreach (string linea in lineas)
+            {
+                if (string.IsNullOrWhiteSpace(linea)) continue;
+                // El formato es: 2025-11-26 01:47:41;54.1
+                string[] partes = linea.Split(';');
+
+                if (partes.Length == 2)
+                {
+                    string fechaStr = partes[0].Trim();
+                    string dbStr = partes[1].Trim();
+
+                    // 1. Parsear Fecha (Usando formato exacto y cultura Invariante)
+                    if (DateTime.TryParseExact(fechaStr, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fecha))
+                    {
+                        // 2. Parsear Decibelios (Usando la cultura española por la coma)
+                        if (int.TryParse(dbStr, NumberStyles.Any, cultureDecimal, out int db))
+                        {
+                            mediciones.Add(new MedicionData(fecha, db));
+                        }
+                    }
+                }
+            }
+
+            if (mediciones.Count == 0)
+                throw new Exception("El archivo no contiene mediciones válidas. Asegúrese de que el formato sea 'YYYY-MM-DD HH:mm:ss;Decibel'.");
+
+            return mediciones;
         }
     }
 }

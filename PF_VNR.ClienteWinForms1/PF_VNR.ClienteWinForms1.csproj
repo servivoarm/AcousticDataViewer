@@ -178,6 +178,8 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GuardarBaseDatos.cs" />
+    <Compile Include="MedicionData.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\LoginRequest.cs" />
     <Compile Include="Service\AuthApiService.cs" />
